@@ -2,9 +2,16 @@ vim-instant-markdown
 ====================
 Want to instantly preview finnicky markdown files, but don't want to leave your favorite editor, or have to do it in some crappy browser textarea? **vim-instant-markdown** is your friend! When you open a markdown file in vim, a browser window will open which shows the compiled markdown in real-time, and closes once you close the file in vim.
 
+
+
+This is a fork from [suan/vim-instant-markdown](https://github.com/suan/vim-instant-markdown)
+due to lack of activity in the project. The original version did not support multiple sessions at the same time and allowed to only open a single markdown document at a time. This fork supports multiple sessions for each open buffer containing a markdown.
+
+
 As a bonus, [github-flavored-markdown][gfm] is supported, and styles used while previewing are the same as those github uses!
 
 [![Screenshot][ss]][ssbig]
+
 
 Installation
 ------------
@@ -19,6 +26,14 @@ You first need to have node.js with npm installed. Then:
 - Copy the `after/ftplugin/markdown/instant-markdown.vim` file from this repo into your `~/.vim/after/ftplugin/markdown/` (creating directories as necessary), or follow your vim package manager's instructions.
 - Ensure you have the line `filetype plugin on` in your `.vimrc`
 - Open a markdown file in vim and enjoy!
+
+
+
+## How does it work
+A nodejs server should be installed, this server implements web sockets using socket.io. When you start a vim open a vim buffer holding a `*.md ` file it starts the daemon on port 8090 which in turn opens a browser tab for you and connects to it using sockets. Every change to th buffer reflects instantly in the browser session and every open buffer is associated with a socket of a browser sessions so you can edit multiple mardown files at once and still be able to preview all of them in the browser.
+
+On closing the buffer, the server terminates the browser session associated with this exact buffer.
+
 
 Configuration
 -------------
