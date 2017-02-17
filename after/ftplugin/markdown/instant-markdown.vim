@@ -62,7 +62,8 @@ endfu
 function! s:refreshView()
     let bufnr = expand('<bufnr>')
 
-    let body = '{"id":"'.@%.'","body":"'.join(s:bufGetLines(bufnr),'\n').'"}'
+    let markdown = join(s:bufGetLines(bufnr),'\n')
+    let body = FormatPayload(@%, markdown)
     call s:systemasync("curl -X PUT -T - http://localhost:8090", [body])
 endfu
 
@@ -84,8 +85,8 @@ function! s:startDaemon(initialMDLines)
     if !running
       call s:systemasync('instant-markdown-d', a:initialMDLines)
     endif
-
-    let body = '{"id":"'.@%.'","body":"'.join(s:bufGetLines(bufnr),'\n').'"}'
+    let markdown = join(s:bufGetLines(bufnr), '\n')
+    let body = FormatPayload(@%, markdown)
     call s:systemasync("curl -XPOST -T - http://localhost:8090", [body])
 
 endfu
@@ -197,3 +198,9 @@ if g:instant_markdown_autostart
 else
     command! -buffer InstantMarkdownPreview call s:previewMarkdown()
 endif
+
+
+function! FormatPayload(id, body)
+  let separator = "########### Id-BODY-SEPARATOR ###########"
+  return a:id.separator.a:body
+endfunction
