@@ -61,12 +61,14 @@ endfu
 
 function! s:refreshView()
     let bufnr = expand('<bufnr>')
-    call s:systemasync("curl -X PUT -T - http://localhost:8090",
-                \ s:bufGetLines(bufnr))
+
+    let body = '{"id":"'.@%.'","body":"'.join(s:bufGetLines(bufnr),'\n').'"}'
+    call s:systemasync("curl -X PUT -T - http://localhost:8090", [body])
 endfu
 
 function! s:startDaemon(initialMDLines)
     let env = ''
+    let bufnr = expand('<bufnr>')
     if g:instant_markdown_open_to_the_world
         let env .= 'INSTANT_MARKDOWN_OPEN_TO_THE_WORLD=1 '
     endif
@@ -77,7 +79,15 @@ function! s:startDaemon(initialMDLines)
         let env .= 'INSTANT_MARKDOWN_BLOCK_EXTERNAL=1 '
     endif
 
-    call s:systemasync('instant-markdown-d', a:initialMDLines)
+    let running = system('ps aux | grep instant-markdown-d | grep node | grep -v grep') != ""
+    " Run the daemon if not running
+    if !running
+      call s:systemasync('instant-markdown-d', a:initialMDLines)
+    endif
+
+    let body = '{"id":"'.@%.'","body":"'.join(s:bufGetLines(bufnr),'\n').'"}'
+    call s:systemasync("curl -XPOST -T - http://localhost:8090", [body])
+
 endfu
 
 function! s:initDict()
@@ -97,7 +107,8 @@ function! s:popBuffer(bufnr)
 endfu
 
 function! s:killDaemon()
-    call s:systemasync("curl -s -X DELETE http://localhost:8090", [])
+    let body = '{"id":"'.@%.'","body":""}'
+    call s:systemasync("curl -s -X DELETE http://localhost:8090", [body])
 endfu
 
 function! s:bufGetLines(bufnr)
